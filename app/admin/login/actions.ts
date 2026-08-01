@@ -3,14 +3,18 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
+const ADMIN_LOGIN_EMAIL = 'heavycrown0011@gmail.com'
+
 export async function login(formData: FormData) {
-  const email = String(formData.get('email') ?? '').trim()
   const password = String(formData.get('password') ?? '')
 
-  if (!email || password.length < 6) redirect('/admin/login?error=invalid')
+  if (password.length < 6) redirect('/admin/login?error=invalid')
 
   const supabase = await createClient()
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: ADMIN_LOGIN_EMAIL,
+    password,
+  })
   if (error || !data.user) redirect('/admin/login?error=invalid')
 
   const { data: admin } = await supabase

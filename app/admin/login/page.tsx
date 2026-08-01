@@ -6,7 +6,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const message = error === 'forbidden'
     ? 'Esta conta não possui permissão de administrador.'
     : error
-      ? 'E-mail ou senha inválidos.'
+      ? 'Senha inválida.'
       : null
 
   return (
@@ -14,9 +14,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <form action={login} className="card stack">
         <div className="login-brand"><MirjeLogo size={92} priority /><div className="brand">MIRJE<small>Painel administrativo</small></div></div>
         <h1>Entrar</h1>
-        <p className="muted">Acesso restrito à equipe autorizada.</p>
+        <p className="muted">Digite a senha para acessar os dados do quiz.</p>
         {message && <div className="error">{message}</div>}
-        <label>E-mail<input className="input" type="email" name="email" required autoComplete="email" /></label>
         <label>Senha<input className="input" type="password" name="password" required autoComplete="current-password" /></label>
         <button className="btn" type="submit">Acessar painel</button>
       </form>

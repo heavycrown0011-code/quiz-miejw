@@ -197,7 +197,10 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
           <RestartQuizButton className="quiz-primary" />
         </div>}
       </section>
-      <p className="quiz-footer">Ministério Internacional Reconstruindo Jerusalém</p>
+      <p className="quiz-footer">
+        Ministério Internacional Reconstruindo Jerusalém
+        <a href="/admin">Área administrativa</a>
+      </p>
     </main>
   )
 }
