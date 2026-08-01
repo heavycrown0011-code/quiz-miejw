@@ -13,7 +13,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const { supabase, profile } = await requireAdmin()
   const page = Number(sp.page || 1)
 
-  const [metricsRes, listRes, quizzesRes] = await Promise.all([
+  const [metricsRes, listRes, quizzesRes, birthdaysRes] = await Promise.all([
     supabase.rpc('admin_dashboard_metrics', { p_quiz_id: sp.quiz || null }),
     supabase.rpc('admin_list_submissions', {
       p_search: sp.search || null,
@@ -24,15 +24,17 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       p_page_size: 20,
     }),
     supabase.rpc('admin_quiz_options'),
+    supabase.rpc('admin_upcoming_birthdays', { p_limit: 5 }),
   ])
 
-  if (metricsRes.error || listRes.error || quizzesRes.error) {
-    console.error('admin_dashboard_error', metricsRes.error || listRes.error || quizzesRes.error)
+  if (metricsRes.error || listRes.error || quizzesRes.error || birthdaysRes.error) {
+    console.error('admin_dashboard_error', metricsRes.error || listRes.error || quizzesRes.error || birthdaysRes.error)
   }
 
   const m: any = metricsRes.data || {}
   const list: any = listRes.data || { rows: [], total: 0, total_pages: 1 }
   const quizzes: any[] = quizzesRes.data || []
+  const birthdays: any[] = birthdaysRes.data || []
 
   return (
     <><header className="topbar"><div className="wrap"><div className="admin-brand"><MirjeLogo size={62} priority /><div className="brand">MIRJE<small>Painel do Quiz Bíblico</small></div></div><div className="admin-user"><span>{profile.full_name || 'Administrador'}</span><form action="/auth/signout" method="post"><button className="btn secondary">Sair</button></form></div></div></header><main className="wrap">
@@ -45,6 +47,24 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <div className="card metric"><span className="muted">Média</span><b>{m.average_score_percent ?? 0}%</b></div>
         <div className="card metric"><span className="muted">Pedidos de oração</span><b>{m.prayer_requests ?? 0}</b></div>
         <div className="card metric"><span className="muted">Acompanhamento</span><b>{m.follow_up_requests ?? 0}</b></div>
+      </section>
+
+      <section className="card birthday-panel">
+        <div className="birthday-heading">
+          <div><span className="birthday-kicker">Analisador de aniversários</span><h2>Próximos aniversariantes</h2></div>
+          <span className="birthday-private">Somente administradores</span>
+        </div>
+        {birthdays.length ? <div className="birthday-list">
+          {birthdays.map((birthday, index) => {
+            const days = Number(birthday.days_until)
+            const proximity = days === 0 ? 'É hoje!' : days === 1 ? 'Amanhã' : `Em ${days} dias`
+            return <article className={`birthday-person${index === 0 ? ' birthday-nearest' : ''}`} key={birthday.submission_id}>
+              <div className="birthday-date"><b>{new Date(`${birthday.next_birthday}T00:00:00`).toLocaleDateString('pt-BR', { day: '2-digit' })}</b><span>{new Date(`${birthday.next_birthday}T00:00:00`).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span></div>
+              <div className="birthday-copy"><span>{index === 0 ? 'Mais próximo' : proximity}</span><b>{birthday.participant_name || 'Sem nome'}</b><small>{proximity} · fará {birthday.turning_age} anos</small></div>
+              {birthday.phone && <a className="birthday-whatsapp" href={`https://wa.me/55${String(birthday.phone).replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp</a>}
+            </article>
+          })}
+        </div> : <p className="muted birthday-empty">Ainda não há participantes com data de nascimento cadastrada.</p>}
       </section>
 
       <form className="toolbar">

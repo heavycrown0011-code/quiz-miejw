@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { FormEvent, useState } from 'react'
 import MirjeLogo from '@/components/MirjeLogo'
 import RestartQuizButton from '@/components/RestartQuizButton'
@@ -185,13 +186,16 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
           {quiz.final_verse && <blockquote>{quiz.final_verse}</blockquote>}
           <div className="contact-links" aria-label="Contatos da MIRJE">
             <a href="https://www.instagram.com/rede_c_n_a/" target="_blank" rel="noreferrer">
-              <span>Instagram</span><b>Rede de Jovens</b><small>@rede_c_n_a</small>
+              <Image className="contact-avatar" src="/instagram-rede-jovens.png" width={54} height={54} alt="Foto do Instagram da Rede de Jovens" />
+              <span className="contact-copy"><span>Instagram</span><b>Rede de Jovens</b><small>@rede_c_n_a</small></span>
             </a>
             <a href="https://www.instagram.com/central_mirje/" target="_blank" rel="noreferrer">
-              <span>Instagram</span><b>Igreja Central</b><small>@central_mirje</small>
+              <Image className="contact-avatar" src="/instagram-central-mirje.png" width={54} height={54} alt="Foto do Instagram da Igreja Central MIRJE" />
+              <span className="contact-copy"><span>Instagram</span><b>Igreja Central</b><small>@central_mirje</small></span>
             </a>
             <a href="https://wa.me/5592991837971" target="_blank" rel="noreferrer">
-              <span>WhatsApp</span><b>Fale com a MIRJE</b><small>(92) 99183-7971</small>
+              <Image className="contact-avatar whatsapp-avatar" src="/whatsapp.svg" width={54} height={54} alt="WhatsApp" />
+              <span className="contact-copy"><span>WhatsApp</span><b>Fale com a MIRJE</b><small>(92) 99183-7971</small></span>
             </a>
           </div>
           <RestartQuizButton className="quiz-primary" />
