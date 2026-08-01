@@ -34,8 +34,7 @@ export default async function DetailPage({ params }: { params: Promise<{ id: str
         </div>
         <div className="card">
           <h2>Resultado</h2>
-          <p><b>Pontuação:</b> {s.score} de {s.max_score}</p>
-          <p><b>Acertos:</b> {s.correct_answers} de {s.total_scored_questions}</p>
+          <p><b>Respostas corretas:</b> {s.correct_answers} de {s.total_scored_questions}</p>
           <p><b>Pedido de oração:</b><br />{s.prayer_request || 'Nenhum pedido informado.'}</p>
         </div>
       </section>

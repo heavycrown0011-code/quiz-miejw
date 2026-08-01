@@ -31,10 +31,10 @@ export async function GET(req: NextRequest) {
   }
 
   const rows: any[] = data.rows || []
-  const header = ['Código','Nome','Telefone','Data de nascimento','Célula/Igreja','Quiz','Pontuação','Máximo','Acertos','Total de perguntas','Pedido de oração','Deseja acompanhamento','Autorização','Data']
+  const header = ['Código','Nome','Telefone','Data de nascimento','Célula/Igreja','Quiz','Respostas corretas','Total de perguntas','Pedido de oração','Deseja acompanhamento','Autorização','Data']
   const lines = [
     header.map(csv).join(','),
-    ...rows.map(r => [r.raffle_code,r.participant_name,r.phone,r.birth_date,r.cell_name || r.leader_name,r.quiz_title,r.score,r.max_score,r.correct_answers,r.total_scored_questions,r.prayer_request,r.wants_follow_up ? 'Sim' : 'Não',r.consent_given ? 'Sim' : 'Não',r.submitted_at].map(csv).join(',')),
+    ...rows.map(r => [r.raffle_code,r.participant_name,r.phone,r.birth_date,r.cell_name || r.leader_name,r.quiz_title,r.correct_answers,r.total_scored_questions,r.prayer_request,r.wants_follow_up ? 'Sim' : 'Não',r.consent_given ? 'Sim' : 'Não',r.submitted_at].map(csv).join(',')),
   ]
 
   return new Response('\ufeff' + lines.join('\n'), {

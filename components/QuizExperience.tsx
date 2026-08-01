@@ -19,7 +19,6 @@ type Quiz = {
   title: string
   description: string | null
   slug: string
-  show_score: boolean
   final_message: string | null
   final_verse: string | null
   settings: {
@@ -184,7 +183,6 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
           <div className="success-icon">✓</div><span className="eyebrow">{isVisitorQuiz ? 'Respostas enviadas' : 'Desafio concluído'}</span><h1>{isVisitorQuiz ? `Obrigado, ${participant.full_name.split(' ')[0]}!` : `Parabéns, ${participant.full_name.split(' ')[0]}!`}</h1>
           <p className="quiz-lead">{quiz.final_message || 'Sua participação foi registrada com sucesso.'}</p>
           {result?.raffle_code && <div className="raffle-ticket"><span>Seu código de sorteio</span><b>{result.raffle_code}</b><small>Guarde este número para o sorteio da MIRJE.</small></div>}
-          {quiz.show_score && result && <div className="score-card"><span>Sua pontuação</span><b>{result.score ?? 0} de {result.max_score ?? 0}</b></div>}
           {quiz.final_verse && <blockquote>{quiz.final_verse}</blockquote>}
           <div className="contact-links" aria-label="Contatos da MIRJE">
             <a href="https://www.instagram.com/rede_c_n_a/" target="_blank" rel="noreferrer">

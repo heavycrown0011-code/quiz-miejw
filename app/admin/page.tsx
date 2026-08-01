@@ -37,12 +37,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   return (
     <><header className="topbar"><div className="wrap"><div className="admin-brand"><MirjeLogo size={62} priority /><div className="brand">MIRJE<small>Painel do Quiz Bíblico</small></div></div><div className="admin-user"><span>{profile.full_name || 'Administrador'}</span><form action="/auth/signout" method="post"><button className="btn secondary">Sair</button></form></div></div></header><main className="wrap">
       <h1>Painel administrativo</h1>
-      <p className="muted">Acompanhe participações, pontuações, pedidos e contatos.</p>
+      <p className="muted">Acompanhe participações, respostas, pedidos e contatos.</p>
 
       <section className="grid metrics">
         <div className="card metric"><span className="muted">Participantes</span><b>{m.total_participants ?? 0}</b></div>
         <div className="card metric"><span className="muted">Hoje</span><b>{m.today_participants ?? 0}</b></div>
-        <div className="card metric"><span className="muted">Média</span><b>{m.average_score_percent ?? 0}%</b></div>
         <div className="card metric"><span className="muted">Pedidos de oração</span><b>{m.prayer_requests ?? 0}</b></div>
         <div className="card metric"><span className="muted">Acompanhamento</span><b>{m.follow_up_requests ?? 0}</b></div>
       </section>
@@ -70,13 +69,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <section className="card table-wrap">
         {list.rows?.length ? (
           <table>
-            <thead><tr><th>Código</th><th>Participante</th><th>Telefone</th><th>Nascimento</th><th>Célula/Igreja</th><th>Quiz</th><th>Pontuação</th><th>Acertos</th><th>Data</th><th>Contato</th></tr></thead>
+            <thead><tr><th>Código</th><th>Participante</th><th>Telefone</th><th>Nascimento</th><th>Célula/Igreja</th><th>Quiz</th><th>Respostas corretas</th><th>Data</th><th>Contato</th></tr></thead>
             <tbody>{list.rows.map((r: any) => (
               <tr key={r.id}>
                 <td><span className="raffle-code-small">{r.raffle_code || '—'}</span></td>
                 <td><Link href={`/admin/participants/${r.id}`}><b>{r.participant_name || 'Sem nome'}</b></Link></td>
                 <td>{r.phone || '—'}</td><td>{r.birth_date ? new Date(`${r.birth_date}T00:00:00`).toLocaleDateString('pt-BR') : '—'}</td><td>{r.cell_name || r.leader_name || '—'}</td><td>{r.quiz_title}</td>
-                <td>{r.score}/{r.max_score}</td><td>{r.correct_answers}/{r.total_scored_questions}</td>
+                <td>{r.correct_answers} de {r.total_scored_questions}</td>
                 <td>{new Date(r.submitted_at).toLocaleString('pt-BR', { timeZone: 'America/Manaus' })}</td>
                 <td>{r.wants_follow_up ? <span className="badge yes">Sim</span> : <span className="badge no">Não</span>}</td>
               </tr>
