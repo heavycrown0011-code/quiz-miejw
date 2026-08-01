@@ -52,6 +52,7 @@ const emptyParticipant: Participant = {
 
 export default function QuizExperience({ quiz }: { quiz: Quiz }) {
   const [stage, setStage] = useState<'welcome' | 'identity' | 'questions' | 'done'>('welcome')
+  const [identityStep, setIdentityStep] = useState(0)
   const [participant, setParticipant] = useState(emptyParticipant)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, { selected: string[]; text: string; numeric: number | null }>>({})
@@ -60,7 +61,11 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
   const [sending, setSending] = useState(false)
   const question = quiz.questions[questionIndex]
   const current = question ? answers[question.id] || { selected: [], text: '', numeric: null } : null
-  const progress = quiz.questions.length ? ((questionIndex + 1) / quiz.questions.length) * 100 : 0
+  const identitySteps = 5
+  const totalSteps = identitySteps + quiz.questions.length
+  const progress = totalSteps ? ((identitySteps + questionIndex + 1) / totalSteps) * 100 : 0
+  const identityProgress = ((identityStep + 1) / totalSteps) * 100
+  const firstName = participant.full_name.trim().split(/\s+/)[0]
 
   function updateParticipant<K extends keyof Participant>(key: K, value: Participant[K]) {
     setParticipant(previous => ({ ...previous, [key]: value }))
@@ -71,13 +76,15 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
     setAnswers(previous => ({ ...previous, [question.id]: value }))
   }
 
-  function validateIdentity(event: FormEvent) {
+  function nextIdentityStep(event: FormEvent) {
     event.preventDefault()
     setError('')
-    if (participant.full_name.trim().length < 3) return setError('Digite seu nome completo.')
-    if (!participant.birth_date) return setError('Informe sua data de nascimento.')
-    if (quiz.settings.require_phone && !participant.phone.trim()) return setError('Informe seu WhatsApp.')
-    if (!participant.consent_given) return setError('Autorize o uso interno das informações para continuar.')
+    if (identityStep === 0 && participant.full_name.trim().length < 2) return setError('Digite seu primeiro nome.')
+    if (identityStep === 1 && !participant.birth_date) return setError('Informe sua data de nascimento.')
+    if (identityStep === 2 && participant.phone.replace(/\D/g, '').length < 10) return setError('Informe um WhatsApp válido.')
+    if (identityStep === 3 && participant.cell_name.trim().length < 2) return setError('Informe sua célula ou igreja.')
+    if (identityStep === 4 && !participant.consent_given) return setError('Autorize o uso interno das informações para continuar.')
+    if (identityStep < identitySteps - 1) return setIdentityStep(value => value + 1)
     setStage('questions')
   }
 
@@ -137,42 +144,38 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
         <div className="quiz-logo"><MirjeLogo size={122} priority /></div>
 
         {stage === 'welcome' && <div className="quiz-center">
-          <span className="eyebrow">MIRJE apresenta</span>
-          <h1>{quiz.title}</h1>
+          <span className="welcome-badge">Desafio oficial MIRJE</span>
+          <h1 className="welcome-title">{quiz.title}</h1>
           <p className="quiz-lead">{quiz.description}</p>
-          <button className="quiz-primary" onClick={() => setStage('identity')}>Começar o desafio</button>
+          <div className="welcome-highlights"><span><b>10</b> perguntas</span><span><b>100%</b> bíblico</span><span><b>Prêmio</b> ao concluir</span></div>
+          <button className="quiz-primary welcome-button" onClick={() => setStage('identity')}>Começar o desafio <span aria-hidden="true">→</span></button>
           <p className="privacy-note">Leva poucos minutos. Suas informações ficam disponíveis somente para a equipe autorizada.</p>
         </div>}
 
-        {stage === 'identity' && <form className="quiz-form" onSubmit={validateIdentity}>
-          <div><span className="eyebrow">Etapa do desafio</span><h1>Queremos conhecer você</h1><p className="quiz-lead">Responda seus dados pessoais e continue o quiz.</p></div>
-          <label>Nome completo<input value={participant.full_name} onChange={e => updateParticipant('full_name', e.target.value)} required minLength={3} autoComplete="name" /></label>
-          <div className="form-grid">
-            <label>Data de nascimento<input type="date" value={participant.birth_date} onChange={e => updateParticipant('birth_date', e.target.value)} required max={new Date().toISOString().slice(0, 10)} autoComplete="bday" /></label>
-            <label>WhatsApp<input type="tel" value={participant.phone} onChange={e => updateParticipant('phone', e.target.value)} required={quiz.settings.require_phone} autoComplete="tel" placeholder="(92) 99999-9999" /></label>
-          </div>
-          <div className="form-grid">
-            <label>Célula ou igreja<input value={participant.cell_name} onChange={e => updateParticipant('cell_name', e.target.value)} required={quiz.settings.require_cell} /></label>
-            <label>Nome do líder<input value={participant.leader_name} onChange={e => updateParticipant('leader_name', e.target.value)} required={quiz.settings.require_leader} /></label>
-          </div>
-          {quiz.settings.ask_visitor && <fieldset><legend>É sua primeira vez conosco?</legend><div className="choice-row"><button type="button" aria-pressed={participant.is_visitor === true} className={participant.is_visitor === true ? 'selected' : ''} onClick={() => updateParticipant('is_visitor', true)}>Sim</button><button type="button" aria-pressed={participant.is_visitor === false} className={participant.is_visitor === false ? 'selected' : ''} onClick={() => updateParticipant('is_visitor', false)}>Não</button></div></fieldset>}
-          {quiz.settings.ask_follow_up && <fieldset><legend>Gostaria que nossa equipe entrasse em contato?</legend><div className="choice-row"><button type="button" aria-pressed={participant.wants_follow_up === true} className={participant.wants_follow_up === true ? 'selected' : ''} onClick={() => updateParticipant('wants_follow_up', true)}>Sim</button><button type="button" aria-pressed={participant.wants_follow_up === false} className={participant.wants_follow_up === false ? 'selected' : ''} onClick={() => updateParticipant('wants_follow_up', false)}>Não</button></div></fieldset>}
-          {quiz.settings.ask_prayer_request && <label>Pedido de oração <span>(opcional)</span><textarea value={participant.prayer_request} onChange={e => updateParticipant('prayer_request', e.target.value)} rows={3} placeholder="Como podemos orar por você?" /></label>}
-          <label className="consent"><input type="checkbox" checked={participant.consent_given} onChange={e => updateParticipant('consent_given', e.target.checked)} /> Autorizo o uso interno destas informações pela equipe da MIRJE.</label>
+        {stage === 'identity' && <form className="identity-stage" onSubmit={nextIdentityStep}>
+          <div className="progress-copy"><span>Etapa {identityStep + 1} de {totalSteps}</span><span>{Math.round(identityProgress)}%</span></div>
+          <div className="progress"><span style={{ width: `${identityProgress}%` }} /></div>
+          <span className="eyebrow">Vamos começar</span>
+          {identityStep === 0 && <label><h1>Qual é o seu primeiro nome?</h1><p>Assim podemos deixar o desafio personalizado para você.</p><input autoFocus value={participant.full_name} onChange={e => updateParticipant('full_name', e.target.value)} required minLength={2} autoComplete="given-name" placeholder="Digite seu primeiro nome" /></label>}
+          {identityStep === 1 && <label><h1>{firstName}, qual é sua data de nascimento?</h1><p>Essa informação ficará disponível somente para a equipe autorizada.</p><input autoFocus type="date" value={participant.birth_date} onChange={e => updateParticipant('birth_date', e.target.value)} required max={new Date().toISOString().slice(0, 10)} autoComplete="bday" /></label>}
+          {identityStep === 2 && <label><h1>{firstName}, qual é o seu WhatsApp?</h1><p>Use um número com DDD para facilitar o contato.</p><input autoFocus type="tel" value={participant.phone} onChange={e => updateParticipant('phone', e.target.value)} required autoComplete="tel" placeholder="(92) 99999-9999" /></label>}
+          {identityStep === 3 && <label><h1>{firstName}, de qual célula ou igreja você participa?</h1><p>Se estiver nos visitando, pode escrever “Visitante”.</p><input autoFocus value={participant.cell_name} onChange={e => updateParticipant('cell_name', e.target.value)} required placeholder="Nome da célula ou igreja" /></label>}
+          {identityStep === 4 && <div className="identity-consent"><h1>Tudo pronto, {firstName}!</h1><p>Antes das perguntas bíblicas, confirme a autorização abaixo.</p><label className="consent"><input type="checkbox" checked={participant.consent_given} onChange={e => updateParticipant('consent_given', e.target.checked)} /> Autorizo o uso interno destas informações pela equipe da MIRJE.</label></div>}
           {error && <div className="quiz-error">{error}</div>}
-          <button className="quiz-primary" type="submit">Ir para as perguntas</button>
+          <div className="quiz-actions">{identityStep > 0 && <button className="quiz-secondary" type="button" onClick={() => { setError(''); setIdentityStep(value => value - 1) }}>Voltar</button>}<button className="quiz-primary" type="submit">{identityStep === identitySteps - 1 ? 'Começar as perguntas' : 'Continuar'}</button></div>
         </form>}
 
         {stage === 'questions' && question && current && <div className="question-stage">
-          <div className="progress-copy"><span>Pergunta {questionIndex + 1} de {quiz.questions.length}</span><span>{Math.round(progress)}%</span></div>
+          <div className="progress-copy"><span>Etapa {identitySteps + questionIndex + 1} de {totalSteps}</span><span>{Math.round(progress)}%</span></div>
           <div className="progress"><span style={{ width: `${progress}%` }} /></div>
+          <span className="question-greeting">{firstName}, responda:</span>
           <h1>{question.prompt}</h1>
           {['single_choice', 'true_false'].includes(question.type) && <div className="option-list">{question.options.map(option => <button key={option.id} type="button" aria-pressed={current.selected.includes(option.id)} className={current.selected.includes(option.id) ? 'selected' : ''} onClick={() => saveAnswer({ ...current, selected: [option.id] })}><span>{option.label}</span><i aria-hidden="true" /></button>)}</div>}
           {question.type === 'multiple_choice' && <div className="option-list">{question.options.map(option => <button key={option.id} type="button" aria-pressed={current.selected.includes(option.id)} className={current.selected.includes(option.id) ? 'selected' : ''} onClick={() => saveAnswer({ ...current, selected: current.selected.includes(option.id) ? current.selected.filter(id => id !== option.id) : [...current.selected, option.id] })}><span>{option.label}</span><i aria-hidden="true" /></button>)}</div>}
           {['short_text', 'long_text'].includes(question.type) && <textarea className="answer-text" rows={question.type === 'long_text' ? 6 : 3} value={current.text} onChange={e => saveAnswer({ ...current, text: e.target.value })} placeholder="Escreva sua resposta" />}
           {question.type === 'scale' && <div className="scale-list">{Array.from({ length: (question.scale_max || 10) - (question.scale_min || 1) + 1 }, (_, index) => (question.scale_min || 1) + index).map(value => <button key={value} className={current.numeric === value ? 'selected' : ''} onClick={() => saveAnswer({ ...current, numeric: value })}>{value}</button>)}</div>}
           {error && <div className="quiz-error">{error}</div>}
-          <div className="quiz-actions">{questionIndex > 0 && <button className="quiz-secondary" onClick={() => setQuestionIndex(value => value - 1)}>Voltar</button>}<button className="quiz-primary" onClick={nextQuestion} disabled={sending}>{sending ? 'Enviando...' : questionIndex === quiz.questions.length - 1 ? 'Finalizar desafio' : 'Próxima pergunta'}</button></div>
+          <div className="quiz-actions"><button className="quiz-secondary" onClick={() => questionIndex > 0 ? setQuestionIndex(value => value - 1) : setStage('identity')}>Voltar</button><button className="quiz-primary" onClick={nextQuestion} disabled={sending}>{sending ? 'Enviando...' : questionIndex === quiz.questions.length - 1 ? 'Finalizar desafio' : 'Próxima pergunta'}</button></div>
         </div>}
 
         {stage === 'done' && <div className="quiz-center success-screen">

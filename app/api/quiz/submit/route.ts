@@ -5,7 +5,7 @@ import { z } from 'zod'
 const schema = z.object({
   quizSlug: z.string().min(1).max(160),
   participant: z.object({
-    full_name: z.string().min(3).max(160),
+    full_name: z.string().min(2).max(80),
     birth_date: z.string().date(),
     phone: z.string().max(40).nullable().optional(),
     cell_name: z.string().max(120).nullable().optional(),
