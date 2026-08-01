@@ -23,6 +23,7 @@ export default async function DetailPage({ params }: { params: Promise<{ id: str
       <section className="grid detail-grid">
         <div className="card">
           <h2>Dados</h2>
+          <p><b>Código de sorteio:</b> <span className="raffle-code-small">{s.raffle_code || '—'}</span></p>
           <p><b>Telefone:</b> {s.phone || '—'}</p>
           <p><b>Data de nascimento:</b> {s.birth_date ? new Date(`${s.birth_date}T00:00:00`).toLocaleDateString('pt-BR') : '—'}</p>
           <p><b>Célula/Igreja:</b> {s.cell_name || s.leader_name || '—'}</p>

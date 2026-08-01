@@ -67,6 +67,7 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
   const progress = totalSteps ? ((identitySteps + questionIndex + 1) / totalSteps) * 100 : 0
   const identityProgress = ((identityStep + 1) / totalSteps) * 100
   const firstName = participant.full_name.trim().split(/\s+/)[0]
+  const isVisitorQuiz = quiz.slug === 'experiencia-no-culto'
 
   function updateParticipant<K extends keyof Participant>(key: K, value: Participant[K]) {
     setParticipant(previous => ({ ...previous, [key]: value }))
@@ -145,11 +146,11 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
         <div className="quiz-logo"><MirjeLogo size={122} priority /></div>
 
         {stage === 'welcome' && <div className="quiz-center">
-          <span className="welcome-badge">Desafio oficial MIRJE</span>
+          <span className="welcome-badge">{isVisitorQuiz ? 'Sua opinião é importante' : 'Desafio oficial MIRJE'}</span>
           <h1 className="welcome-title">{quiz.title}</h1>
           <p className="quiz-lead">{quiz.description}</p>
-          <div className="welcome-highlights"><span><b>10</b> perguntas</span><span><b>100%</b> bíblico</span><span><b>Prêmio</b> ao concluir</span></div>
-          <button className="quiz-primary welcome-button" onClick={() => setStage('identity')}>Começar o desafio <span aria-hidden="true">→</span></button>
+          <div className="welcome-highlights"><span><b>{quiz.questions.length}</b> perguntas</span><span><b>{isVisitorQuiz ? '2 min' : '100%'}</b> {isVisitorQuiz ? 'para responder' : 'bíblico'}</span><span><b>{isVisitorQuiz ? 'Sua voz' : 'Prêmio'}</b> {isVisitorQuiz ? 'nos ajuda' : 'ao concluir'}</span></div>
+          <button className="quiz-primary welcome-button" onClick={() => setStage('identity')}>{isVisitorQuiz ? 'Contar minha experiência' : 'Começar o desafio'} <span aria-hidden="true">→</span></button>
           <p className="privacy-note">Leva poucos minutos. Suas informações ficam disponíveis somente para a equipe autorizada.</p>
         </div>}
 
@@ -161,7 +162,7 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
           {identityStep === 1 && <label><h1>{firstName}, qual é sua data de nascimento?</h1><p>Essa informação ficará disponível somente para a equipe autorizada.</p><input autoFocus type="date" value={participant.birth_date} onChange={e => updateParticipant('birth_date', e.target.value)} required max={new Date().toISOString().slice(0, 10)} autoComplete="bday" /></label>}
           {identityStep === 2 && <label><h1>{firstName}, qual é o seu WhatsApp?</h1><p>Use um número com DDD para facilitar o contato.</p><input autoFocus type="tel" value={participant.phone} onChange={e => updateParticipant('phone', e.target.value)} required autoComplete="tel" placeholder="(92) 99999-9999" /></label>}
           {identityStep === 3 && <label><h1>{firstName}, de qual célula ou igreja você participa?</h1><p>Se estiver nos visitando, pode escrever “Visitante”.</p><input autoFocus value={participant.cell_name} onChange={e => updateParticipant('cell_name', e.target.value)} required placeholder="Nome da célula ou igreja" /></label>}
-          {identityStep === 4 && <div className="identity-consent"><h1>Tudo pronto, {firstName}!</h1><p>Antes das perguntas bíblicas, confirme a autorização abaixo.</p><label className="consent"><input type="checkbox" checked={participant.consent_given} onChange={e => updateParticipant('consent_given', e.target.checked)} /> Autorizo o uso interno destas informações pela equipe da MIRJE.</label></div>}
+          {identityStep === 4 && <div className="identity-consent"><h1>Tudo pronto, {firstName}!</h1><p>Antes das perguntas, confirme a autorização abaixo.</p><label className="consent"><input type="checkbox" checked={participant.consent_given} onChange={e => updateParticipant('consent_given', e.target.checked)} /> Autorizo o uso interno destas informações pela equipe da MIRJE.</label></div>}
           {error && <div className="quiz-error">{error}</div>}
           <div className="quiz-actions">{identityStep > 0 && <button className="quiz-secondary" type="button" onClick={() => { setError(''); setIdentityStep(value => value - 1) }}>Voltar</button>}<button className="quiz-primary" type="submit">{identityStep === identitySteps - 1 ? 'Começar as perguntas' : 'Continuar'}</button></div>
         </form>}
@@ -174,14 +175,15 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
           {['single_choice', 'true_false'].includes(question.type) && <div className="option-list">{question.options.map(option => <button key={option.id} type="button" aria-pressed={current.selected.includes(option.id)} className={current.selected.includes(option.id) ? 'selected' : ''} onClick={() => saveAnswer({ ...current, selected: [option.id] })}><span>{option.label}</span><i aria-hidden="true" /></button>)}</div>}
           {question.type === 'multiple_choice' && <div className="option-list">{question.options.map(option => <button key={option.id} type="button" aria-pressed={current.selected.includes(option.id)} className={current.selected.includes(option.id) ? 'selected' : ''} onClick={() => saveAnswer({ ...current, selected: current.selected.includes(option.id) ? current.selected.filter(id => id !== option.id) : [...current.selected, option.id] })}><span>{option.label}</span><i aria-hidden="true" /></button>)}</div>}
           {['short_text', 'long_text'].includes(question.type) && <textarea className="answer-text" rows={question.type === 'long_text' ? 6 : 3} value={current.text} onChange={e => saveAnswer({ ...current, text: e.target.value })} placeholder="Escreva sua resposta" />}
-          {question.type === 'scale' && <div className="scale-list">{Array.from({ length: (question.scale_max || 10) - (question.scale_min || 1) + 1 }, (_, index) => (question.scale_min || 1) + index).map(value => <button key={value} className={current.numeric === value ? 'selected' : ''} onClick={() => saveAnswer({ ...current, numeric: value })}>{value}</button>)}</div>}
+          {question.type === 'scale' && <div className="scale-list">{Array.from({ length: (question.scale_max ?? 10) - (question.scale_min ?? 1) + 1 }, (_, index) => (question.scale_min ?? 1) + index).map(value => <button type="button" key={value} className={current.numeric === value ? 'selected' : ''} onClick={() => saveAnswer({ ...current, numeric: value })}>{value}</button>)}</div>}
           {error && <div className="quiz-error">{error}</div>}
-          <div className="quiz-actions"><button className="quiz-secondary" onClick={() => questionIndex > 0 ? setQuestionIndex(value => value - 1) : setStage('identity')}>Voltar</button><button className="quiz-primary" onClick={nextQuestion} disabled={sending}>{sending ? 'Enviando...' : questionIndex === quiz.questions.length - 1 ? 'Finalizar desafio' : 'Próxima pergunta'}</button></div>
+          <div className="quiz-actions"><button className="quiz-secondary" onClick={() => questionIndex > 0 ? setQuestionIndex(value => value - 1) : setStage('identity')}>Voltar</button><button className="quiz-primary" onClick={nextQuestion} disabled={sending}>{sending ? 'Enviando...' : questionIndex === quiz.questions.length - 1 ? (isVisitorQuiz ? 'Enviar respostas' : 'Finalizar desafio') : 'Próxima pergunta'}</button></div>
         </div>}
 
         {stage === 'done' && <div className="quiz-center success-screen">
-          <div className="success-icon">✓</div><span className="eyebrow">Desafio concluído</span><h1>Parabéns, {participant.full_name.split(' ')[0]}!</h1>
+          <div className="success-icon">✓</div><span className="eyebrow">{isVisitorQuiz ? 'Respostas enviadas' : 'Desafio concluído'}</span><h1>{isVisitorQuiz ? `Obrigado, ${participant.full_name.split(' ')[0]}!` : `Parabéns, ${participant.full_name.split(' ')[0]}!`}</h1>
           <p className="quiz-lead">{quiz.final_message || 'Sua participação foi registrada com sucesso.'}</p>
+          {result?.raffle_code && <div className="raffle-ticket"><span>Seu código de sorteio</span><b>{result.raffle_code}</b><small>Guarde este número para o sorteio da MIRJE.</small></div>}
           {quiz.show_score && result && <div className="score-card"><span>Sua pontuação</span><b>{result.score ?? 0} de {result.max_score ?? 0}</b></div>}
           {quiz.final_verse && <blockquote>{quiz.final_verse}</blockquote>}
           <div className="contact-links" aria-label="Contatos da MIRJE">
