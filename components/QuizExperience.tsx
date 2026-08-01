@@ -35,7 +35,7 @@ type Quiz = {
 
 type Participant = {
   full_name: string
-  age: string
+  birth_date: string
   phone: string
   cell_name: string
   leader_name: string
@@ -46,7 +46,7 @@ type Participant = {
 }
 
 const emptyParticipant: Participant = {
-  full_name: '', age: '', phone: '', cell_name: '', leader_name: '',
+  full_name: '', birth_date: '', phone: '', cell_name: '', leader_name: '',
   is_visitor: null, wants_follow_up: null, prayer_request: '', consent_given: false,
 }
 
@@ -75,7 +75,7 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
     event.preventDefault()
     setError('')
     if (participant.full_name.trim().length < 3) return setError('Digite seu nome completo.')
-    if (quiz.settings.require_age && !participant.age) return setError('Informe sua idade.')
+    if (!participant.birth_date) return setError('Informe sua data de nascimento.')
     if (quiz.settings.require_phone && !participant.phone.trim()) return setError('Informe seu WhatsApp.')
     if (!participant.consent_given) return setError('Autorize o uso interno das informações para continuar.')
     setStage('questions')
@@ -99,7 +99,7 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
         quizSlug: quiz.slug,
         participant: {
           full_name: participant.full_name.trim(),
-          age: participant.age ? Number(participant.age) : null,
+          birth_date: participant.birth_date,
           phone: participant.phone.trim() || null,
           cell_name: participant.cell_name.trim() || null,
           leader_name: participant.leader_name.trim() || null,
@@ -145,10 +145,10 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
         </div>}
 
         {stage === 'identity' && <form className="quiz-form" onSubmit={validateIdentity}>
-          <div><span className="eyebrow">Antes de começar</span><h1>Queremos conhecer você</h1><p className="quiz-lead">Preencha seus dados para participar.</p></div>
+          <div><span className="eyebrow">Etapa do desafio</span><h1>Queremos conhecer você</h1><p className="quiz-lead">Responda seus dados pessoais e continue o quiz.</p></div>
           <label>Nome completo<input value={participant.full_name} onChange={e => updateParticipant('full_name', e.target.value)} required minLength={3} autoComplete="name" /></label>
           <div className="form-grid">
-            <label>Idade<input type="number" min="5" max="120" value={participant.age} onChange={e => updateParticipant('age', e.target.value)} required={quiz.settings.require_age} /></label>
+            <label>Data de nascimento<input type="date" value={participant.birth_date} onChange={e => updateParticipant('birth_date', e.target.value)} required max={new Date().toISOString().slice(0, 10)} autoComplete="bday" /></label>
             <label>WhatsApp<input type="tel" value={participant.phone} onChange={e => updateParticipant('phone', e.target.value)} required={quiz.settings.require_phone} autoComplete="tel" placeholder="(92) 99999-9999" /></label>
           </div>
           <div className="form-grid">
@@ -180,6 +180,17 @@ export default function QuizExperience({ quiz }: { quiz: Quiz }) {
           <p className="quiz-lead">{quiz.final_message || 'Sua participação foi registrada com sucesso.'}</p>
           {quiz.show_score && result && <div className="score-card"><span>Sua pontuação</span><b>{result.score ?? 0} de {result.max_score ?? 0}</b></div>}
           {quiz.final_verse && <blockquote>{quiz.final_verse}</blockquote>}
+          <div className="contact-links" aria-label="Contatos da MIRJE">
+            <a href="https://www.instagram.com/rede_c_n_a/" target="_blank" rel="noreferrer">
+              <span>Instagram</span><b>Rede de Jovens</b><small>@rede_c_n_a</small>
+            </a>
+            <a href="https://www.instagram.com/central_mirje/" target="_blank" rel="noreferrer">
+              <span>Instagram</span><b>Igreja Central</b><small>@central_mirje</small>
+            </a>
+            <a href="https://wa.me/5592991837971" target="_blank" rel="noreferrer">
+              <span>WhatsApp</span><b>Fale com a MIRJE</b><small>(92) 99183-7971</small>
+            </a>
+          </div>
           <RestartQuizButton className="quiz-primary" />
         </div>}
       </section>

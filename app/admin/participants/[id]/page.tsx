@@ -24,7 +24,7 @@ export default async function DetailPage({ params }: { params: Promise<{ id: str
         <div className="card">
           <h2>Dados</h2>
           <p><b>Telefone:</b> {s.phone || '—'}</p>
-          <p><b>Idade:</b> {s.age ?? '—'}</p>
+          <p><b>Data de nascimento:</b> {s.birth_date ? new Date(`${s.birth_date}T00:00:00`).toLocaleDateString('pt-BR') : '—'}</p>
           <p><b>Célula/Igreja:</b> {s.cell_name || s.leader_name || '—'}</p>
           <p><b>Quiz:</b> {s.quiz_title}</p>
           <p><b>Data:</b> {new Date(s.submitted_at).toLocaleString('pt-BR', { timeZone: 'America/Manaus' })}</p>

@@ -6,7 +6,7 @@ const schema = z.object({
   quizSlug: z.string().min(1).max(160),
   participant: z.object({
     full_name: z.string().min(3).max(160),
-    age: z.number().int().min(5).max(120).nullable().optional(),
+    birth_date: z.string().date(),
     phone: z.string().max(40).nullable().optional(),
     cell_name: z.string().max(120).nullable().optional(),
     leader_name: z.string().max(120).nullable().optional(),
@@ -27,10 +27,19 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = schema.parse(await req.json())
+    const birthDate = new Date(`${body.participant.birth_date}T00:00:00Z`)
+    const today = new Date()
+    let age = today.getUTCFullYear() - birthDate.getUTCFullYear()
+    const birthdayHasPassed = today.getUTCMonth() > birthDate.getUTCMonth() ||
+      (today.getUTCMonth() === birthDate.getUTCMonth() && today.getUTCDate() >= birthDate.getUTCDate())
+    if (!birthdayHasPassed) age--
+    if (age < 5 || age > 120) {
+      return Response.json({ message: 'Informe uma data de nascimento válida.' }, { status: 400 })
+    }
     const supabase = await createClient()
     const { data, error } = await supabase.rpc('submit_quiz_public', {
       p_quiz_slug: body.quizSlug,
-      p_participant: body.participant,
+      p_participant: { ...body.participant, age },
       p_answers: body.answers,
       p_fingerprint: body.fingerprint,
     })
