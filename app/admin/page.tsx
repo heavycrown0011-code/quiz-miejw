@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin'
+import MirjeLogo from '@/components/MirjeLogo'
 
 function qs(values: Record<string, string | undefined>) {
   const params = new URLSearchParams()
@@ -9,7 +10,7 @@ function qs(values: Record<string, string | undefined>) {
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
-  const { supabase } = await requireAdmin()
+  const { supabase, profile } = await requireAdmin()
   const page = Number(sp.page || 1)
 
   const [metricsRes, listRes, quizzesRes] = await Promise.all([
@@ -34,7 +35,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const quizzes: any[] = quizzesRes.data || []
 
   return (
-    <main className="wrap">
+    <><header className="topbar"><div className="wrap"><div className="admin-brand"><MirjeLogo size={62} priority /><div className="brand">MIRJE<small>Painel do Quiz Bíblico</small></div></div><div className="admin-user"><span>{profile.full_name || 'Administrador'}</span><form action="/auth/signout" method="post"><button className="btn secondary">Sair</button></form></div></div></header><main className="wrap">
       <h1>Painel administrativo</h1>
       <p className="muted">Acompanhe participações, pontuações, pedidos e contatos.</p>
 
@@ -85,6 +86,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           </div>
         </div>
       </section>
-    </main>
+    </main></>
   )
 }

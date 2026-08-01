@@ -1,4 +1,5 @@
 import { login } from './actions'
+import MirjeLogo from '@/components/MirjeLogo'
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams
@@ -11,7 +12,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="login">
       <form action={login} className="card stack">
-        <div className="brand">MIRJE<small>Painel administrativo</small></div>
+        <div className="login-brand"><MirjeLogo size={92} priority /><div className="brand">MIRJE<small>Painel administrativo</small></div></div>
         <h1>Entrar</h1>
         <p className="muted">Acesso restrito à equipe autorizada.</p>
         {message && <div className="error">{message}</div>}

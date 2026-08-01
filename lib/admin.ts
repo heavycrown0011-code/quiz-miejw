@@ -6,7 +6,7 @@ export async function requireAdmin() {
   const { data: claimsData, error } = await supabase.auth.getClaims()
   const uid = claimsData?.claims?.sub as string | undefined
 
-  if (error || !uid) redirect('/admin/login')
+  if (error || !claimsData || !uid) redirect('/admin/login')
 
   const { data: profile } = await supabase
     .from('admin_profiles')

@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin'
+import MirjeLogo from '@/components/MirjeLogo'
 
 export default async function DetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { supabase } = await requireAdmin()
+  const { supabase, profile } = await requireAdmin()
   const { data, error } = await supabase.rpc('admin_submission_detail', { p_submission_id: id })
 
   if (error || !data) {
@@ -16,7 +17,7 @@ export default async function DetailPage({ params }: { params: Promise<{ id: str
   const answers: any[] = data.answers || []
 
   return (
-    <main className="wrap">
+    <><header className="topbar"><div className="wrap"><div className="admin-brand"><MirjeLogo size={62} priority /><div className="brand">MIRJE<small>Painel do Quiz Bíblico</small></div></div><div className="admin-user"><span>{profile.full_name || 'Administrador'}</span><form action="/auth/signout" method="post"><button className="btn secondary">Sair</button></form></div></div></header><main className="wrap">
       <Link href="/admin">← Voltar</Link>
       <h1>{s.participant_name || 'Participação'}</h1>
       <section className="grid detail-grid">
@@ -47,6 +48,6 @@ export default async function DetailPage({ params }: { params: Promise<{ id: str
           <span className={`badge ${a.is_correct ? 'yes' : 'no'}`}>{a.is_correct ? 'Acertou' : 'Errou'}</span>
         </div>
       ))}
-    </main>
+    </main></>
   )
 }
